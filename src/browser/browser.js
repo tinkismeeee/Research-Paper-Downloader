@@ -1,15 +1,16 @@
-import playwright from "rebrowser-playwright";
+import { chromium } from "rebrowser-playwright";
 import axios from "axios";
-import fs from "fs";
+import fs from "fs/promises";
 import * as constants from "../const/const.js";
 import { time } from "console";
+
 export class Browser {
 	static buffer = 1000;
 	constructor() {
 		if (!Browser.instance) {
 			Browser.instance = this;
 			process.on("exit", async () => {
-				this.close();
+				await this.close();
 			});
 		}
 		return Browser.instance;
@@ -27,18 +28,29 @@ export class Browser {
 				const obj = {
 					useragent: response[Math.floor(Math.random() * response.length)],
 				};
-				fs.writeFileSync("./src/browser/useragent.json", JSON.stringify(obj, null, 4));
+				await fs.writeFile(constants.Paths.UA, JSON.stringify(obj, null, 4));
 				return obj.useragent;
 			} else {
-				return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61";
+				const backup = {
+					useragent:
+						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61",
+				};
+				await fs.writeFile(constants.Paths.UA, JSON.stringify(backup, null, 4));
+				return backup.useragent;
 			}
 		} catch (error) {
 			// Default useragent
-			return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61";
+			const backup = {
+				useragent:
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61",
+			};
+			await fs.writeFile(constants.Paths.UA, JSON.stringify(backup, null, 4));
+			return backup.useragent;
 		}
 	}
 	async launch_browser() {
 		try {
+			await this.get_user_agent();
 			const isLinux = process.platform === "linux";
 			const baseArgs = [
 				"--no-sandbox",
@@ -115,20 +127,38 @@ export class Browser {
 					];
 			const launchTimeout = isLinux ? 90000 : 120000;
 			const args = [...baseArgs, ...platformStabilityArgs];
-			this.browser = await playwright.launch({
+			this.browser = await chromium.launch({
 				headless: constants.PlaywrightConfig.headless,
-				args,
+				args: args,
 				timeout: launchTimeout,
 			});
+			await this.delay(Browser.buffer);
 			return this.browser;
 		} catch (error) {
-			console.error("Error launching browser:", error);
+			//console.error("Error launching browser:", error);
 			throw error;
 		}
 	}
+
+	async get_page(url) {
+		if (!this.browser) {
+			await this.launch_browser();
+		}
+		const page = await this.browser.newPage();
+		await page.goto(url, {
+			waitUntil: "domcontentloaded",
+			timeout: constants.Constants.Timeout,
+		});
+		return page;
+	}
+
 	async close() {
 		if (this.browser) {
 			await this.browser.close();
+			// console.log("Browser closed successfully");
+			try {
+				await fs.unlink(constants.Paths.UA);
+			} catch (error) {}
 		}
 	}
 }

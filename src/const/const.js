@@ -1,6 +1,6 @@
 export const URLS = {
-	USER_AGENT: "https://jnrbsn.github.io/user-agents/user-agents.json",
-	OPENALEX_INDEX: "https://api.openalex.org/works/",
+	USER_AGENT: 'https://jnrbsn.github.io/user-agents/user-agents.json',
+	OPENALEX_INDEX: 'https://api.openalex.org/works/doi',
 };
 
 export const PlaywrightConfig = {
@@ -8,7 +8,7 @@ export const PlaywrightConfig = {
 };
 
 export const Paths = {
-	UA: "./src/browser/useragent.json",
+	UA: './src/browser/useragent.json',
 };
 
 export const Constants = {
@@ -17,9 +17,9 @@ export const Constants = {
 };
 
 export const TestUrls = {
-	creepjs: "https://abrahamjuliot.github.io/creepjs/",
-	botcheck: "https://botcheck.luminati.io/",
-	fvpro: "https://fv.pro/",
-	pixelscan: "https://pixelscan.net/",
-	browserscan: "https://www.browserscan.net/bot-detection",
+	creepjs: 'https://abrahamjuliot.github.io/creepjs/',
+	botcheck: 'https://botcheck.luminati.io/',
+	fvpro: 'https://fv.pro/',
+	pixelscan: 'https://pixelscan.net/',
+	browserscan: 'https://www.browserscan.net/bot-detection',
 };

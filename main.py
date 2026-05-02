@@ -617,6 +617,7 @@ async def main() -> None:
             json_data = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         json_data: Dict[str, List[Dict[str, Any]]] = {}
+    # json_data: Dict[str, List[Dict[str, Any]]] = {}
 
     local_timezone = datetime.now(timezone.utc).astimezone().tzinfo
     unix_timestamp = clearance_cookie["expires"] - timedelta(days=365).total_seconds()

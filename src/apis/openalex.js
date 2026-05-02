@@ -21,7 +21,6 @@ export class OpenAlex {
 			const primaryLocationPdfUrl = data.primary_location?.pdf_url;
 			const bestOALocationPdfUrl = data.best_oa_location?.pdf_url;
 			if (primaryLocationPdfUrl == null && bestOALocationPdfUrl == null) {
-				console.log('No PDF URLs available');
 				return null;
 			}
 			return primaryLocationPdfUrl || bestOALocationPdfUrl;
@@ -35,6 +34,20 @@ export class OpenAlex {
 			return data.open_access.is_oa;
 		} catch (error) {
 			return false;
+		}
+	}
+
+	async getInfo(data) {
+		try {
+			return {
+				doi: data.doi,
+				title: data.title,
+			};
+		} catch (error) {
+			return {
+				doi: null,
+				title: null,
+			};
 		}
 	}
 }

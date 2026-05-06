@@ -6,6 +6,7 @@ export const URLS = {
 	BIORXIV: 'https://www.biorxiv.org/',
 	MEDRXIV: 'https://www.medrxiv.org/',
 	DLDJournal: 'https://www.dldjournalonline.com/',
+	SCIHUB: 'https://sci-hub.vn/',
 };
 
 export const PlaywrightConfig = {
@@ -27,4 +28,10 @@ export const TestUrls = {
 	fvpro: 'https://fv.pro/',
 	pixelscan: 'https://pixelscan.net/',
 	browserscan: 'https://www.browserscan.net/bot-detection',
+};
+
+export const ScihubSELECTORS = {
+	PDF_URL: 'meta[citation_pdf_url]',
+	NOT_FOUND: '.notfound',
+	NOT_AVAILABLE: '.message',
 };

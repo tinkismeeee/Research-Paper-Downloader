@@ -1,10 +1,13 @@
 import { ScihubSELECTORS, URLS } from '../const/const.js';
 import axios from 'axios';
 import { Browser } from '../browser/browser.js';
+import { Cheerio } from 'cheerio';
+
 export class Scihub {
 	static buffer = 1000;
 	constructor() {
 		if (!Scihub.instance) {
+			this.browser = new Browser();
 			Scihub.instance = this;
 		}
 		return Scihub.instance;

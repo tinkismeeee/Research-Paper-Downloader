@@ -1,6 +1,5 @@
 import { chromium } from 'rebrowser-playwright';
 import axios from 'axios';
-import fs from 'fs/promises';
 import * as constants from '../const/const.js';
 import { time } from 'console';
 
@@ -11,6 +10,7 @@ export class Browser {
 			Browser.instance = this;
 			this.browser = null;
 			this.launchPromise = null;
+			this.userAgent = null;
 			process.on('exit', async () => {
 				await this.close();
 			});
@@ -27,27 +27,13 @@ export class Browser {
 			const request = await axios.get(constants.URLS.USER_AGENT);
 			const response = await request.data;
 			if (response && response.length > 0) {
-				const obj = {
-					useragent: response[Math.floor(Math.random() * response.length)],
-				};
-				await fs.writeFile(constants.Paths.UA, JSON.stringify(obj, null, 4));
-				return obj.useragent;
+				return response[Math.floor(Math.random() * response.length)];
 			} else {
-				const backup = {
-					useragent:
-						'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61',
-				};
-				await fs.writeFile(constants.Paths.UA, JSON.stringify(backup, null, 4));
-				return backup.useragent;
+				return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61';
 			}
 		} catch (error) {
-			// Default useragent
-			const backup = {
-				useragent:
-					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61',
-			};
-			await fs.writeFile(constants.Paths.UA, JSON.stringify(backup, null, 4));
-			return backup.useragent;
+			// Default useragent in case of error
+			return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61';
 		}
 	}
 	async launch_browser() {
@@ -71,7 +57,7 @@ export class Browser {
 
 	async _launch_browser() {
 		try {
-			await this.get_user_agent();
+			this.userAgent = await this.get_user_agent();
 			const isLinux = process.platform === 'linux';
 			const baseArgs = [
 				'--no-sandbox',
@@ -165,7 +151,13 @@ export class Browser {
 		if (!this.browser) {
 			await this.launch_browser();
 		}
-		const page = await this.browser.newPage();
+		if (!this.userAgent) {
+			this.userAgent = await this.get_user_agent();
+		}
+		const context = await this.browser.newContext({
+			userAgent: this.userAgent,
+		});
+		const page = await context.newPage();
 		await page.goto(url, {
 			waitUntil: 'domcontentloaded',
 			timeout: constants.Constants.Timeout,
@@ -177,10 +169,8 @@ export class Browser {
 		if (this.browser) {
 			await this.browser.close();
 			this.browser = null;
+			this.userAgent = null;
 			// console.log("Browser closed successfully");
-			try {
-				await fs.unlink(constants.Paths.UA);
-			} catch (error) {}
 		}
 	}
 }

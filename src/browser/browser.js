@@ -9,6 +9,8 @@ export class Browser {
 	constructor() {
 		if (!Browser.instance) {
 			Browser.instance = this;
+			this.browser = null;
+			this.launchPromise = null;
 			process.on('exit', async () => {
 				await this.close();
 			});
@@ -49,6 +51,25 @@ export class Browser {
 		}
 	}
 	async launch_browser() {
+		// Return existing browser if already launched
+		if (this.browser) {
+			return this.browser;
+		}
+		// If a launch is already in progress, do not start another one
+		if (this.launchPromise) {
+			return this.launchPromise;
+		}
+		// If no launch in progress, start a new one
+		this.launchPromise = this._launch_browser();
+		try {
+			this.browser = await this.launchPromise;
+			return this.browser;
+		} finally {
+			this.launchPromise = null;
+		}
+	}
+
+	async _launch_browser() {
 		try {
 			await this.get_user_agent();
 			const isLinux = process.platform === 'linux';
@@ -127,13 +148,13 @@ export class Browser {
 					];
 			const launchTimeout = isLinux ? 90000 : 120000;
 			const args = [...baseArgs, ...platformStabilityArgs];
-			this.browser = await chromium.launch({
+			const browser = await chromium.launch({
 				headless: constants.PlaywrightConfig.headless,
 				args: args,
 				timeout: launchTimeout,
 			});
 			await this.delay(Browser.buffer);
-			return this.browser;
+			return browser;
 		} catch (error) {
 			//console.error("Error launching browser:", error);
 			throw error;
@@ -155,6 +176,7 @@ export class Browser {
 	async close() {
 		if (this.browser) {
 			await this.browser.close();
+			this.browser = null;
 			// console.log("Browser closed successfully");
 			try {
 				await fs.unlink(constants.Paths.UA);

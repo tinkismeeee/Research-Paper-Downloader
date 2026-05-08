@@ -148,3 +148,4 @@ vite.config.ts.timestamp-*
 cookie.json
 src/browser/useragent.json
 data.json
+src/tests/general.test.js

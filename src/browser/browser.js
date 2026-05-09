@@ -23,19 +23,67 @@ export class Browser {
 	}
 
 	async get_user_agent() {
+		const system = await this.get_system_components();
+		const app = await this.get_app_components();
+		const uaTemplate = `Mozilla/5.0 (${system}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${app.chrome_reduced_version} Safari/537.36`;
+		const platformVersion = `${Math.floor(Math.random() * 15) + 1}.0.0`;
+		const uaMetadata = {
+			mobile: false,
+			isMobile: false,
+			platform: 'Windows',
+			fullVersionList: [
+				{ brand: 'Not/A)Brand', version: `99.0.0.0` },
+				{ brand: 'Google Chrome', version: app['chrome_version'] },
+				{ brand: 'Chromium', version: app['chrome_version'] },
+			],
+			brands: [
+				{ brand: 'Not/A)Brand', version: '99' },
+				{ brand: 'Google Chrome', version: app['chrome_major_version'] },
+				{ brand: 'Chromium', version: app['chrome_major_version'] },
+			],
+			platformVersion,
+			architecture: 'x86',
+			bitness: '64',
+			model: '',
+			uaFullVersion: app['chrome_version'],
+		};
+		return { userAgent: uaTemplate, userAgentMetadata: uaMetadata };
+	}
+
+	async get_system_components() {
+		return 'Windows NT 10.0; Win64; x64';
+	}
+
+	async get_chrome_version() {
 		try {
-			const request = await axios.get(constants.URLS.USER_AGENT);
-			const response = await request.data;
-			if (response && response.length > 0) {
-				return response[Math.floor(Math.random() * response.length)];
-			} else {
-				return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61';
-			}
+			const request = {
+				url: 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json',
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			};
+			const response = await axios(request);
+			const data = response.data;
+			return data.channels.Stable.version;
 		} catch (error) {
-			// Default useragent in case of error
-			return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Unique/96.7.6401.61';
+			throw new Error('Failed to fetch Chrome version: ' + error.message);
 		}
 	}
+
+	async get_app_components() {
+		const chromeVersion = await this.get_chrome_version();
+		const chromeMajorVersion = chromeVersion?.split('.')[0];
+		const chromeReducedVersion = `${chromeMajorVersion}.0.0.0`;
+		return {
+			not_a_brand_version: '99.0.0.0',
+			not_a_brand_major_version: '99',
+			chrome_version: `${chromeVersion}`,
+			chrome_major_version: `${chromeMajorVersion}`,
+			chrome_reduced_version: `${chromeReducedVersion}`,
+		};
+	}
+
 	async launch_browser() {
 		// Return existing browser if already launched
 		if (this.browser) {

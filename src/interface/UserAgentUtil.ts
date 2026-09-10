@@ -1,13 +1,13 @@
 export interface ChromeVersion {
     timestamp: string,
-    channel: Channels
+    channels: Channels
 }
 
 export interface Channels {
-    stable: Stable,
-    beta: Beta
-    dev: Dev
-    canary: Canary
+    Stable: Stable,
+    Beta: Beta
+    Dev: Dev
+    Canary: Canary
 }
 
 export interface Stable {
